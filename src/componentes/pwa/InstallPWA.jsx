@@ -13,21 +13,25 @@ export default function InstallPWA() {
       return;
     }
 
-    // Verificar si el usuario ya rechazó la instalación
+    // Verificar si el usuario ya rechazó la instalación recientemente
     const dismissed = localStorage.getItem('pwa-install-dismissed');
     if (dismissed) {
-      return;
+      if (Date.now() < parseInt(dismissed)) {
+        console.log('Instalación pospuesta hasta:', new Date(parseInt(dismissed)));
+        return;
+      }
+      // Si ya expiró, limpiamos
+      localStorage.removeItem('pwa-install-dismissed');
     }
 
     // Capturar el evento beforeinstallprompt
     const handler = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
+      console.log('Evento beforeinstallprompt capturado');
       
-      // Mostrar el prompt después de 3 segundos
-      setTimeout(() => {
-        setShowInstallPrompt(true);
-      }, 3000);
+      // Mostrar el prompt inmediatamente
+      setShowInstallPrompt(true);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
