@@ -36,24 +36,6 @@ jobs:
         run: npm run build
         env:
           NODE_ENV: production
-          # Firebase Config 1
-          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
-          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
-          VITE_FIREBASE_DATABASE_URL: ${{ secrets.VITE_FIREBASE_DATABASE_URL }}
-          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
-          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
-          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
-          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
-          VITE_FIREBASE_MEASUREMENT_ID: ${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}
-          # Firebase Config 2 (si usas una segunda configuración)
-          VITE_FIREBASE_API_KEY_2: ${{ secrets.VITE_FIREBASE_API_KEY_2 }}
-          VITE_FIREBASE_AUTH_DOMAIN_2: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN_2 }}
-          VITE_FIREBASE_DATABASE_URL_2: ${{ secrets.VITE_FIREBASE_DATABASE_URL_2 }}
-          VITE_FIREBASE_PROJECT_ID_2: ${{ secrets.VITE_FIREBASE_PROJECT_ID_2 }}
-          VITE_FIREBASE_STORAGE_BUCKET_2: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET_2 }}
-          VITE_FIREBASE_MESSAGING_SENDER_ID_2: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID_2 }}
-          VITE_FIREBASE_APP_ID_2: ${{ secrets.VITE_FIREBASE_APP_ID_2 }}
-          VITE_FIREBASE_MEASUREMENT_ID_2: ${{ secrets.VITE_FIREBASE_MEASUREMENT_ID_2 }}
           
       - name: Setup Pages
         uses: actions/configure-pages@v4
