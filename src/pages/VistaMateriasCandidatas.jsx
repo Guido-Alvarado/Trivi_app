@@ -8,6 +8,7 @@ import { auth, app1 } from "../firebaseConfig";
 import { GoogleAuthProvider, signInWithPopup, signInWithRedirect } from "firebase/auth";
 import { getFirestore, doc, getDoc, updateDoc } from "firebase/firestore";
 import ReportModal from "../componentes/modals/ReportModal";
+import PWALoginModal from "../componentes/modals/PWALoginModal";
 
 export default function VistaMateriasCandidatas() {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ export default function VistaMateriasCandidatas() {
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [showPWALoginModal, setShowPWALoginModal] = useState(false);
   
   // Estados para datos dinámicos
   const [carreraSeleccionada, setCarreraSeleccionada] = useState(null);
@@ -150,9 +152,10 @@ export default function VistaMateriasCandidatas() {
       const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
                     window.navigator.standalone === true;
       
-      // Solo en PWA instalada usar redirect
+      // En PWA instalada, mostrar modal para ir a la web
       if (isPWA) {
-        await signInWithRedirect(auth, provider);
+        setShowAuthModal(false);
+        setShowPWALoginModal(true);
       } else {
         // En navegador (PC o Móvil), usar popup
         const result = await signInWithPopup(auth, provider);
@@ -742,6 +745,11 @@ export default function VistaMateriasCandidatas() {
         >
           <Plus size={32} />
         </button>
+      )}
+
+      {/* Modal PWA Login */}
+      {showPWALoginModal && (
+        <PWALoginModal onClose={() => setShowPWALoginModal(false)} />
       )}
     </div>
   );

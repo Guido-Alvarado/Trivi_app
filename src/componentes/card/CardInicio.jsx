@@ -4,6 +4,7 @@ import { User, X, Info, Heart, Users, Briefcase, Code, Mail, LogOut, Crown } fro
 import IconButton from "../iconos/IconButton";
 import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, signOut, onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../firebaseConfig";
+import PWALoginModal from "../modals/PWALoginModal";
 
 export default function CardInicio({ carrera }) {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ export default function CardInicio({ carrera }) {
   const [showDonationModal, setShowDonationModal] = React.useState(false);
   const [showCreatorModal, setShowCreatorModal] = React.useState(false);
   const [showNoCareerModal, setShowNoCareerModal] = React.useState(false);
+  const [showPWALoginModal, setShowPWALoginModal] = React.useState(false);
   const [tempName, setTempName] = React.useState("");
 
   const [user, setUser] = React.useState(null);
@@ -65,9 +67,10 @@ export default function CardInicio({ carrera }) {
       const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
                     window.navigator.standalone === true;
       
-      // Solo en PWA instalada usar redirect (porque los popups fallan en standalone)
+      // En PWA instalada, mostrar modal para ir a la web
       if (isPWA) {
-        await signInWithRedirect(auth, provider);
+        setShowModal(false);
+        setShowPWALoginModal(true);
       } else {
         // En navegador (PC o Móvil), usar popup
         const result = await signInWithPopup(auth, provider);
@@ -398,6 +401,11 @@ export default function CardInicio({ carrera }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal PWA Login */}
+      {showPWALoginModal && (
+        <PWALoginModal onClose={() => setShowPWALoginModal(false)} />
       )}
     </div>
   );

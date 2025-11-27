@@ -8,6 +8,7 @@ import { app1, auth } from "../firebaseConfig";
 import { GoogleAuthProvider, signInWithPopup, signInWithRedirect } from "firebase/auth";
 import { Plus, RefreshCw, Save, X, ThumbsUp, Check, Trash2, AlertTriangle, ListChecks } from "lucide-react";
 import ReportModal from "../componentes/modals/ReportModal";
+import PWALoginModal from "../componentes/modals/PWALoginModal";
 
 export default function VistaCarreras() {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ export default function VistaCarreras() {
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showPWALoginModal, setShowPWALoginModal] = useState(false);
   
   // Estados para admin y borrado
   const [isAdmin, setIsAdmin] = useState(false);
@@ -286,9 +288,10 @@ export default function VistaCarreras() {
       const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
                     window.navigator.standalone === true;
       
-      // Solo en PWA instalada usar redirect
+      // En PWA instalada, mostrar modal para ir a la web
       if (isPWA) {
-        await signInWithRedirect(auth, provider);
+        setShowAuthModal(false);
+        setShowPWALoginModal(true);
       } else {
         // En navegador (PC o Móvil), usar popup
         const result = await signInWithPopup(auth, provider);
@@ -607,6 +610,11 @@ export default function VistaCarreras() {
         >
           <Plus size={32} />
         </button>
+      )}
+
+      {/* Modal PWA Login */}
+      {showPWALoginModal && (
+        <PWALoginModal onClose={() => setShowPWALoginModal(false)} />
       )}
     </div>
   );

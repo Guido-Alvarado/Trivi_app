@@ -1,0 +1,11 @@
+[33m415375a[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Fix: Auth Guard en App.jsx - Bloquear renderizado hasta confirmar sesión para evitar pérdida de login en PWA
+[33m401c7dc[m Fix: Robustez Login PWA - Agregar onAuthStateChanged global en App.jsx para asegurar detección de sesión al volver del redirect
+[33m057451c[m Fix: Autenticación - Solo usar redirect en PWA instalada, usar popup en navegadores (PC y Móvil)
+[33mbd8ed81[m Fix: Detectar dispositivos móviles para usar signInWithRedirect - Los popups no funcionan en móviles
+[33m7698c53[m Fix: Autenticación en PWA instalada - Detecta modo PWA y usa signInWithRedirect en lugar de signInWithPopup
+[33m5122aea[m fix: manifest PWA rutas
+[33mc916948[m Fix 404 error on GitHub Pages by generating 404.html
+[33md95c9c9[m Fix InstallPWA logic: remove delay and fix expiration check
+[33m7cbb611[m Fix PWA icon paths for GitHub Pages subpath
+[33m6e00d95[m Configure for GitHub Pages deployment with .env file
+[33m9a1607c[m Initial commit - TriviaApp ready for GitHub Pages deployment
