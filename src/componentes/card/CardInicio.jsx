@@ -61,16 +61,15 @@ export default function CardInicio({ carrera }) {
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      // Detectar si es dispositivo móvil o PWA instalada
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      // Detectar si la app está instalada como PWA
       const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
                     window.navigator.standalone === true;
       
-      // En móvil o PWA, siempre usar redirect (popup no funciona bien)
-      if (isMobile || isPWA) {
+      // Solo en PWA instalada usar redirect (porque los popups fallan en standalone)
+      if (isPWA) {
         await signInWithRedirect(auth, provider);
       } else {
-        // Solo en desktop navegador, usar popup (mejor UX)
+        // En navegador (PC o Móvil), usar popup
         const result = await signInWithPopup(auth, provider);
         
         // Verificación de administrador en login explícito
