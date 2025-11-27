@@ -20,20 +20,24 @@ import InstallPWA from "./componentes/pwa/InstallPWA";
 
 function App() {
   // Manejar el resultado del redirect cuando vuelve de la autenticación
+  // Manejar el resultado del redirect y estado de autenticación
   useEffect(() => {
+    // 1. Verificar resultado del redirect (Login PWA)
     const handleRedirectResult = async () => {
       try {
         const result = await getRedirectResult(auth);
         if (result) {
-          // Usuario autenticado exitosamente después del redirect
           const user = result.user;
+          console.log("Login exitoso por Redirect (PWA):", user.email);
           
-          // Verificación de administrador
+          // Guardar datos críticos en localStorage inmediatamente
+          localStorage.setItem("user_uid", user.uid);
           if (user.email === "guidoalvarado2019@gmail.com") {
             localStorage.setItem("administrador", "true");
           }
           
-          console.log("Login exitoso en PWA:", user.displayName);
+          // Forzar recarga suave si es necesario para actualizar UI
+          // window.location.reload(); // Opcional, mejor dejar que React reaccione
         }
       } catch (error) {
         console.error("Error al procesar redirect:", error);
@@ -41,6 +45,23 @@ function App() {
     };
 
     handleRedirectResult();
+
+    // 2. Escuchar cambios de estado globales (Persistencia)
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        console.log("Usuario autenticado detectado en App:", user.email);
+        localStorage.setItem("user_uid", user.uid);
+        if (user.email === "guidoalvarado2019@gmail.com") {
+          localStorage.setItem("administrador", "true");
+        }
+      } else {
+        // No borrar user_uid aquí para evitar parpadeos si está cargando,
+        // dejar que los componentes individuales manejen el logout explícito
+        console.log("No hay usuario autenticado activo");
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
   // Configuración para GitHub Pages
   // En desarrollo usa '/', en producción usa el nombre del repositorio
