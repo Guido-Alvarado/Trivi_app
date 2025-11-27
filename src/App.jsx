@@ -1,4 +1,7 @@
+import { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { getRedirectResult } from "firebase/auth";
+import { auth } from "./firebaseConfig";
 import Inicio from "./pages/Inicio";
 import VistaMaterias from "./pages/VistaMaterias";
 import VistaBD from "./pages/VistaBD";
@@ -16,6 +19,29 @@ import CarrerasGuardadas from "./pages/CarrerasGuardadas";
 import InstallPWA from "./componentes/pwa/InstallPWA";
 
 function App() {
+  // Manejar el resultado del redirect cuando vuelve de la autenticación
+  useEffect(() => {
+    const handleRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result) {
+          // Usuario autenticado exitosamente después del redirect
+          const user = result.user;
+          
+          // Verificación de administrador
+          if (user.email === "guidoalvarado2019@gmail.com") {
+            localStorage.setItem("administrador", "true");
+          }
+          
+          console.log("Login exitoso en PWA:", user.displayName);
+        }
+      } catch (error) {
+        console.error("Error al procesar redirect:", error);
+      }
+    };
+
+    handleRedirectResult();
+  }, []);
   // Configuración para GitHub Pages
   // En desarrollo usa '/', en producción usa el nombre del repositorio
   const basename = import.meta.env.MODE === 'production' ? '/Trivi_app' : '';

@@ -5,7 +5,7 @@ import Toolbar from "../componentes/tolbar/Toolbard";
 import MateriaCandidataItem from "../componentes/card/MateriaCandidataItem";
 import Buscador from "../componentes/elementos/Buscador";
 import { auth, app1 } from "../firebaseConfig";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signInWithRedirect } from "firebase/auth";
 import { getFirestore, doc, getDoc, updateDoc } from "firebase/firestore";
 import ReportModal from "../componentes/modals/ReportModal";
 
@@ -146,12 +146,22 @@ export default function VistaMateriasCandidatas() {
   const handleAuthContinue = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      localStorage.setItem("user_uid", user.uid);
-      setShowAuthModal(false);
-      alert(`¡Bienvenido ${user.displayName || "Usuario"}! Ahora puedes proponer materias.`);
-      setShowWarningModal(true);
+      // Detectar si la app está instalada como PWA
+      const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                    window.navigator.standalone === true;
+      
+      if (isPWA) {
+        // En PWA instalada, usar redirect
+        await signInWithRedirect(auth, provider);
+      } else {
+        // En navegador normal, usar popup
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        localStorage.setItem("user_uid", user.uid);
+        setShowAuthModal(false);
+        alert(`¡Bienvenido ${user.displayName || "Usuario"}! Ahora puedes proponer materias.`);
+        setShowWarningModal(true);
+      }
     } catch (error) {
       console.error("Error login:", error);
       setShowAuthModal(false);

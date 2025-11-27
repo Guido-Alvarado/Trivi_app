@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { User, X, Info, Heart, Users, Briefcase, Code, Mail, LogOut, Crown } from "lucide-react";
 import IconButton from "../iconos/IconButton";
-import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, signOut, onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../firebaseConfig";
 
 export default function CardInicio({ carrera }) {
@@ -61,14 +61,24 @@ export default function CardInicio({ carrera }) {
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
+      // Detectar si la app está instalada como PWA
+      const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                    window.navigator.standalone === true;
       
-      // Verificación de administrador en login explícito
-      if (result.user.email === "guidoalvarado2019@gmail.com") {
-        localStorage.setItem("administrador", "true");
+      if (isPWA) {
+        // En PWA instalada, usar redirect (funciona mejor)
+        await signInWithRedirect(auth, provider);
+      } else {
+        // En navegador normal, usar popup (mejor UX)
+        const result = await signInWithPopup(auth, provider);
+        
+        // Verificación de administrador en login explícito
+        if (result.user.email === "guidoalvarado2019@gmail.com") {
+          localStorage.setItem("administrador", "true");
+        }
+        
+        setShowModal(false);
       }
-      
-      setShowModal(false);
     } catch (error) {
       console.error("Error login:", error);
       alert("Error al iniciar sesión con Google");

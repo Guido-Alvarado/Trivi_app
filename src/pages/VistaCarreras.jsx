@@ -5,7 +5,7 @@ import Buscador from "../componentes/elementos/Buscador";
 import CardListas from "../componentes/card/CardListas";
 import { getFirestore, doc, getDoc, updateDoc } from "firebase/firestore";
 import { app1, auth } from "../firebaseConfig";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signInWithRedirect } from "firebase/auth";
 import { Plus, RefreshCw, Save, X, ThumbsUp, Check, Trash2, AlertTriangle, ListChecks } from "lucide-react";
 import ReportModal from "../componentes/modals/ReportModal";
 
@@ -282,12 +282,22 @@ export default function VistaCarreras() {
   const handleAuthContinue = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      localStorage.setItem("user_uid", user.uid);
-      setShowAuthModal(false);
-      alert(`¡Bienvenido ${user.displayName || "Usuario"}! Ahora puedes agregar carreras.`);
-      setShowWarningModal(true);
+      // Detectar si la app está instalada como PWA
+      const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                    window.navigator.standalone === true;
+      
+      if (isPWA) {
+        // En PWA instalada, usar redirect
+        await signInWithRedirect(auth, provider);
+      } else {
+        // En navegador normal, usar popup
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        localStorage.setItem("user_uid", user.uid);
+        setShowAuthModal(false);
+        alert(`¡Bienvenido ${user.displayName || "Usuario"}! Ahora puedes agregar carreras.`);
+        setShowWarningModal(true);
+      }
     } catch (error) {
       console.error("Error login:", error);
       setShowAuthModal(false);
