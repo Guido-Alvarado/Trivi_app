@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { getRedirectResult } from "firebase/auth";
+import { getRedirectResult, onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebaseConfig";
 import Inicio from "./pages/Inicio";
 import VistaMaterias from "./pages/VistaMaterias";
@@ -19,53 +19,63 @@ import CarrerasGuardadas from "./pages/CarrerasGuardadas";
 import InstallPWA from "./componentes/pwa/InstallPWA";
 
 function App() {
-  // Manejar el resultado del redirect cuando vuelve de la autenticación
-  // Manejar el resultado del redirect y estado de autenticación
+  const [isAuthReady, setIsAuthReady] = useState(false);
+
+  // Manejar la inicialización de la autenticación
   useEffect(() => {
-    // 1. Verificar resultado del redirect (Login PWA)
-    const handleRedirectResult = async () => {
+    let unsubscribe;
+
+    const initAuth = async () => {
       try {
+        // 1. Primero intentar procesar el resultado del redirect (crítico para PWA)
         const result = await getRedirectResult(auth);
         if (result) {
           const user = result.user;
           console.log("Login exitoso por Redirect (PWA):", user.email);
-          
-          // Guardar datos críticos en localStorage inmediatamente
           localStorage.setItem("user_uid", user.uid);
           if (user.email === "guidoalvarado2019@gmail.com") {
             localStorage.setItem("administrador", "true");
           }
-          
-          // Forzar recarga suave si es necesario para actualizar UI
-          // window.location.reload(); // Opcional, mejor dejar que React reaccione
         }
       } catch (error) {
         console.error("Error al procesar redirect:", error);
+      } finally {
+        // 2. Suscribirse al estado de autenticación para confirmar el estado final
+        unsubscribe = onAuthStateChanged(auth, (user) => {
+          if (user) {
+            console.log("Sesión confirmada:", user.email);
+            localStorage.setItem("user_uid", user.uid);
+            if (user.email === "guidoalvarado2019@gmail.com") {
+              localStorage.setItem("administrador", "true");
+            }
+          } else {
+            console.log("No hay sesión activa");
+          }
+          // 3. Solo ahora permitimos que la app se renderice
+          setIsAuthReady(true);
+        });
       }
     };
 
-    handleRedirectResult();
+    initAuth();
 
-    // 2. Escuchar cambios de estado globales (Persistencia)
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        console.log("Usuario autenticado detectado en App:", user.email);
-        localStorage.setItem("user_uid", user.uid);
-        if (user.email === "guidoalvarado2019@gmail.com") {
-          localStorage.setItem("administrador", "true");
-        }
-      } else {
-        // No borrar user_uid aquí para evitar parpadeos si está cargando,
-        // dejar que los componentes individuales manejen el logout explícito
-        console.log("No hay usuario autenticado activo");
-      }
-    });
-
-    return () => unsubscribe();
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
+
   // Configuración para GitHub Pages
-  // En desarrollo usa '/', en producción usa el nombre del repositorio
   const basename = import.meta.env.MODE === 'production' ? '/Trivi_app' : '';
+
+  // Pantalla de carga mientras se verifica la sesión
+  if (!isAuthReady) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+        <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-gray-600 font-medium text-lg">Verificando sesión...</p>
+      </div>
+    );
+  }
   
   return (
     <Router basename={basename}>
