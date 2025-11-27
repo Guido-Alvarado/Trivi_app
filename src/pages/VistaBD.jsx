@@ -223,6 +223,12 @@ export default function VistaBD() {
 
   // Manejadores para votación
   const handleToggleVote = (pregunta) => {
+    // Verificar si el usuario está logueado
+    if (!auth.currentUser) {
+      setShowAuthModal(true);
+      return;
+    }
+
     if (votedHistory.includes(pregunta.id)) return;
 
     setPendingVotes(prev => {

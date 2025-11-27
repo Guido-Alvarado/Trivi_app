@@ -116,6 +116,12 @@ export default function VistaCarreras() {
   };
 
   const handleToggleVote = (carrera) => {
+    // Verificar si el usuario está logueado
+    if (!auth.currentUser) {
+      setShowAuthModal(true);
+      return;
+    }
+
     if (votedHistory.includes(carrera.Nombre)) return;
 
     setPendingVotes(prev => {

@@ -190,6 +190,12 @@ export default function VistaMateriasCandidatas() {
 
   // Handlers para votación
   const handleToggleVote = (materia) => {
+    // Verificar si el usuario está logueado
+    if (!auth.currentUser) {
+      setShowAuthModal(true);
+      return;
+    }
+
     if (votedHistory.includes(materia.Nombre)) return; // Usar Nombre con mayúscula
 
     setPendingVotes(prev => {
