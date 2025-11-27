@@ -282,15 +282,16 @@ export default function VistaCarreras() {
   const handleAuthContinue = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      // Detectar si la app está instalada como PWA
+      // Detectar si es dispositivo móvil o PWA instalada
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
                     window.navigator.standalone === true;
       
-      if (isPWA) {
-        // En PWA instalada, usar redirect
+      // En móvil o PWA, siempre usar redirect
+      if (isMobile || isPWA) {
         await signInWithRedirect(auth, provider);
       } else {
-        // En navegador normal, usar popup
+        // Solo en desktop navegador, usar popup
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
         localStorage.setItem("user_uid", user.uid);
