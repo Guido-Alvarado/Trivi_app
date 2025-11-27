@@ -4,6 +4,7 @@ import Toolbar from "../componentes/tolbar/Toolbard";
 import { Edit, Trash2, ChevronDown, ChevronUp, AlertTriangle, X, CloudUpload, CheckCircle } from "lucide-react";
 import { getFirestore, doc, updateDoc, arrayUnion, getDoc, setDoc } from "firebase/firestore";
 import { app1, auth } from "../firebaseConfig";
+import StatusModal from "../componentes/modals/StatusModal";
 
 export default function CarrerasGuardadas() {
   const navigate = useNavigate();
@@ -176,132 +177,81 @@ export default function CarrerasGuardadas() {
       )}
 
       {/* Modal de Confirmación de Subida */}
-      {showUploadModal && (
+      {showUploadModal && !uploading && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="p-6 text-center">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CloudUpload size={32} className={`text-blue-600 ${uploading ? "animate-bounce" : ""}`} />
+                <CloudUpload size={32} className="text-blue-600" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">
-                {uploading ? "Subiendo..." : "¿Subir carreras?"}
+                ¿Subir carreras?
               </h3>
               <p className="text-gray-500 mb-6">
-                {uploading 
-                  ? "Por favor espera mientras subimos tus carreras a la nube..." 
-                  : "Se subirán tus carreras guardadas a la nube. Por favor, revisa que todo esté correcto antes de continuar."}
+                Se subirán tus carreras guardadas a la nube. Por favor, revisa que todo esté correcto antes de continuar.
               </p>
-              {!uploading && (
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowUploadModal(false)}
-                    className="flex-1 bg-gray-100 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-200 transition"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={confirmUpload}
-                    className="flex-1 bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition shadow-lg"
-                  >
-                    Subir
-                  </button>
-                </div>
-              )}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowUploadModal(false)}
+                  className="flex-1 bg-gray-100 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-200 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmUpload}
+                  className="flex-1 bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition shadow-lg"
+                >
+                  Subir
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal de Éxito */}
+      {/* Modales de Estado usando StatusModal */}
+      {uploading && (
+        <StatusModal
+          type="loading"
+          title="Subiendo..."
+          message="Por favor espera mientras subimos tus carreras a la nube..."
+        />
+      )}
+
       {showSuccessModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-6 text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle size={32} className="text-green-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">¡Subida Exitosa!</h3>
-              <p className="text-gray-500 mb-6">
-                Tus carreras se han subido correctamente a la nube.
-              </p>
-              <button
-                onClick={() => setShowSuccessModal(false)}
-                className="w-full bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700 transition shadow-lg"
-              >
-                Entendido
-              </button>
-            </div>
-          </div>
-        </div>
+        <StatusModal
+          type="success"
+          title="¡Subida Exitosa!"
+          message="Tus carreras se han subido correctamente a la nube."
+          onClose={() => setShowSuccessModal(false)}
+        />
       )}
 
-      {/* Modal de Lista Vacía */}
       {showEmptyListModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-6 text-center">
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertTriangle size={32} className="text-orange-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Lista Vacía</h3>
-              <p className="text-gray-500 mb-6">
-                No hay carreras guardadas para subir. Primero crea algunas carreras.
-              </p>
-              <button
-                onClick={() => setShowEmptyListModal(false)}
-                className="w-full bg-orange-600 text-white font-bold py-3 rounded-xl hover:bg-orange-700 transition shadow-lg"
-              >
-                Entendido
-              </button>
-            </div>
-          </div>
-        </div>
+        <StatusModal
+          type="error"
+          title="Lista Vacía"
+          message="No hay carreras guardadas para subir. Primero crea algunas carreras."
+          onClose={() => setShowEmptyListModal(false)}
+        />
       )}
 
-      {/* Modal de Error de Autenticación */}
       {showAuthErrorModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-6 text-center">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertTriangle size={32} className="text-red-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Sesión Requerida</h3>
-              <p className="text-gray-500 mb-6">
-                Debes iniciar sesión con Google para subir carreras a la nube.
-              </p>
-              <button
-                onClick={() => setShowAuthErrorModal(false)}
-                className="w-full bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 transition shadow-lg"
-              >
-                Entendido
-              </button>
-            </div>
-          </div>
-        </div>
+        <StatusModal
+          type="error"
+          title="Sesión Requerida"
+          message="Debes iniciar sesión con Google para subir carreras a la nube."
+          onClose={() => setShowAuthErrorModal(false)}
+        />
       )}
 
-      {/* Modal de Error de Subida */}
       {showUploadErrorModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-6 text-center">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <X size={32} className="text-red-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Error al Subir</h3>
-              <p className="text-gray-500 mb-6">
-                Hubo un error al subir las carreras. Por favor, verifica tu conexión e intenta nuevamente.
-              </p>
-              <button
-                onClick={() => setShowUploadErrorModal(false)}
-                className="w-full bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 transition shadow-lg"
-              >
-                Entendido
-              </button>
-            </div>
-          </div>
-        </div>
+        <StatusModal
+          type="error"
+          title="Error al Subir"
+          message="Hubo un error al subir las carreras. Por favor, verifica tu conexión e intenta nuevamente."
+          onClose={() => setShowUploadErrorModal(false)}
+        />
       )}
     </div>
   );

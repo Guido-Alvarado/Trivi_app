@@ -4,6 +4,7 @@ import Toolbar from "../componentes/tolbar/Toolbard";
 import { Edit, Trash2, ChevronDown, ChevronUp, AlertTriangle, X, CloudUpload, CheckCircle, AlertCircle } from "lucide-react";
 import { getFirestore, doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
 import { app1, auth } from "../firebaseConfig";
+import StatusModal from "../componentes/modals/StatusModal";
 
 export default function MateriasGuardadas() {
   const navigate = useNavigate();
@@ -13,6 +14,8 @@ export default function MateriasGuardadas() {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showEmptyModal, setShowEmptyModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [materiaToDelete, setMateriaToDelete] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadedCount, setUploadedCount] = useState(0);
@@ -63,13 +66,15 @@ export default function MateriasGuardadas() {
     const userUid = localStorage.getItem("user_uid");
 
     if (!carreraSeleccionada) {
-      alert("Error: No hay carrera seleccionada.");
+      setErrorMessage("Error: No hay carrera seleccionada.");
+      setShowErrorModal(true);
       setShowUploadModal(false);
       return;
     }
 
     if (!userUid) {
-      alert("Error: Debes estar logueado para subir materias.");
+      setErrorMessage("Error: Debes estar logueado para subir materias.");
+      setShowErrorModal(true);
       setShowUploadModal(false);
       return;
     }
@@ -101,7 +106,8 @@ export default function MateriasGuardadas() {
         );
 
         if (nuevasMaterias.length === 0) {
-          alert("Todas las materias ya existen en la nube.");
+          setErrorMessage("Todas las materias ya existen en la nube.");
+          setShowErrorModal(true);
           setUploading(false);
           setShowUploadModal(false);
           return;
@@ -128,7 +134,8 @@ export default function MateriasGuardadas() {
 
     } catch (error) {
       console.error("Error subiendo materias:", error);
-      alert("Error al subir las materias. Intenta nuevamente.");
+      setErrorMessage("Error al subir las materias. Intenta nuevamente.");
+      setShowErrorModal(true);
     } finally {
       setUploading(false);
     }
@@ -197,86 +204,72 @@ export default function MateriasGuardadas() {
       )}
 
       {/* Modal de Confirmación de Subida */}
-      {showUploadModal && (
+      {showUploadModal && !uploading && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="p-6 text-center">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CloudUpload size={32} className={`text-blue-600 ${uploading ? "animate-bounce" : ""}`} />
+                <CloudUpload size={32} className="text-blue-600" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">
-                {uploading ? "Subiendo..." : "¿Subir materias?"}
+                ¿Subir materias?
               </h3>
               <p className="text-gray-500 mb-6">
-                {uploading 
-                  ? "Por favor espera mientras subimos tus materias a la nube..." 
-                  : "Se subirán tus materias guardadas a la nube. Por favor, revisa que todo esté correcto antes de continuar."}
+                Se subirán tus materias guardadas a la nube. Por favor, revisa que todo esté correcto antes de continuar.
               </p>
-              {!uploading && (
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowUploadModal(false)}
-                    className="flex-1 bg-gray-100 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-200 transition"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={confirmUpload}
-                    className="flex-1 bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition shadow-lg"
-                  >
-                    Subir
-                  </button>
-                </div>
-              )}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowUploadModal(false)}
+                  className="flex-1 bg-gray-100 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-200 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmUpload}
+                  className="flex-1 bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition shadow-lg"
+                >
+                  Subir
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal de Éxito */}
+      {/* Modales de Estado usando StatusModal */}
+      {uploading && (
+        <StatusModal
+          type="loading"
+          title="Subiendo..."
+          message="Por favor espera mientras subimos tus materias a la nube..."
+        />
+      )}
+
       {showSuccessModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-6 text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle size={32} className="text-green-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">¡Subida Exitosa!</h3>
-              <p className="text-gray-500 mb-6">
-                Se han subido correctamente {uploadedCount} materias a la nube.
-              </p>
-              <button
-                onClick={() => setShowSuccessModal(false)}
-                className="w-full bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700 transition shadow-lg"
-              >
-                Entendido
-              </button>
-            </div>
-          </div>
-        </div>
+        <StatusModal
+          type="success"
+          title="¡Subida Exitosa!"
+          message={`Se han subido correctamente ${uploadedCount} materias a la nube.`}
+          onClose={() => setShowSuccessModal(false)}
+        />
       )}
 
-      {/* Modal de Lista Vacía */}
       {showEmptyModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-6 text-center">
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertCircle size={32} className="text-orange-500" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Lista Vacía</h3>
-              <p className="text-gray-500 mb-6">
-                No tienes materias guardadas localmente para subir. Crea una nueva materia primero.
-              </p>
-              <button
-                onClick={() => setShowEmptyModal(false)}
-                className="w-full bg-orange-500 text-white font-bold py-3 rounded-xl hover:bg-orange-600 transition shadow-lg"
-              >
-                Entendido
-              </button>
-            </div>
-          </div>
-        </div>
+        <StatusModal
+          type="error"
+          title="Lista Vacía"
+          message="No tienes materias guardadas localmente para subir. Crea una nueva materia primero."
+          onClose={() => setShowEmptyModal(false)}
+        />
+      )}
+
+      {showErrorModal && (
+        <StatusModal
+          type="error"
+          title="Error"
+          message={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
       )}
     </div>
   );

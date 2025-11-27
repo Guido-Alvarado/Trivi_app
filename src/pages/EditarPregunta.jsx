@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Toolbar from "../componentes/tolbar/Toolbard";
 import FormVerdaderoFalso from "../componentes/forms/FormVerdaderoFalso";
 import FormOpcionMultiple from "../componentes/forms/FormOpcionMultiple";
+import StatusModal from "../componentes/modals/StatusModal";
 
 /**
  * Componente `EditarPregunta`
@@ -19,21 +20,41 @@ export default function EditarPregunta() {
 
   // Estado para la pregunta que se está editando.
   const [pregunta, setPregunta] = useState(null);
+  // Estado para modal de error
+  const [showErrorModal, setShowErrorModal] = useState(false);
 
   // Carga la pregunta desde el Local Storage cuando el componente se monta.
   useEffect(() => {
-    const preguntasGuardadas =
-      JSON.parse(localStorage.getItem("preguntasGuardadas")) || [];
-    // Busca la pregunta por su ID.
-    const preguntaAEditar = preguntasGuardadas.find((p) => p.id === parseInt(id));
+    const materiaActiva = localStorage.getItem("materiaActiva");
+    let preguntas = [];
+    
+    // 1. Intentar buscar en la materia activa
+    if (materiaActiva) {
+      const preguntasMateria = JSON.parse(localStorage.getItem(`preguntasGuardadas_${materiaActiva}`)) || [];
+      if (preguntasMateria.length > 0) {
+        preguntas = preguntasMateria;
+      }
+    }
+    
+    // 2. Si no se encontró (o no hay materia activa), buscar en global (legacy)
+    if (preguntas.length === 0) {
+      preguntas = JSON.parse(localStorage.getItem("preguntasGuardadas")) || [];
+    }
+
+    // Busca la pregunta por su ID (comparación flexible para string/number)
+    const preguntaAEditar = preguntas.find((p) => p.id == id);
 
     if (preguntaAEditar) {
       setPregunta(preguntaAEditar);
     } else {
-      alert("Pregunta no encontrada.");
-      navigate("/preguntas-guardadas"); // Redirige si no se encuentra.
+      setShowErrorModal(true);
     }
-  }, [id, navigate]);
+  }, [id]);
+
+  const handleErrorClose = () => {
+    setShowErrorModal(false);
+    navigate("/preguntas-guardadas");
+  };
 
   /**
    * Renderiza el formulario correcto (`Verdadero/Falso` u `Opción Múltiple`)
@@ -80,6 +101,15 @@ export default function EditarPregunta() {
           {renderFormulario()}
         </div>
       </main>
+
+      {showErrorModal && (
+        <StatusModal
+          type="error"
+          title="Pregunta no encontrada"
+          message="No se pudo encontrar la pregunta solicitada. Es posible que haya sido eliminada."
+          onClose={handleErrorClose}
+        />
+      )}
     </div>
   );
 }

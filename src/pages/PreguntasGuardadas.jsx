@@ -5,6 +5,7 @@ import Toolbar from "../componentes/tolbar/Toolbard";
 import PreguntasGuardadasItem from "../componentes/card/PreguntasGuardadasItem";
 import { getFirestore, doc, getDoc, setDoc, arrayUnion } from "firebase/firestore";
 import { app1 } from "../firebaseConfig";
+import StatusModal from "../componentes/modals/StatusModal";
 
 /**
  * Componente `PreguntasGuardadas`
@@ -28,6 +29,8 @@ export default function PreguntasGuardadas() {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showMinQuestionsModal, setShowMinQuestionsModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [itemToDelete, setItemToDelete] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadedCount, setUploadedCount] = useState(0);
@@ -130,13 +133,15 @@ export default function PreguntasGuardadas() {
     const userUid = localStorage.getItem("user_uid");
 
     if (!carreraSeleccionada) {
-      alert("Error: No hay carrera seleccionada.");
+      setErrorMessage("Error: No hay carrera seleccionada.");
+      setShowErrorModal(true);
       setShowUploadModal(false);
       return;
     }
 
     if (!userUid) {
-      alert("Error: Debes estar logueado para subir preguntas.");
+      setErrorMessage("Error: Debes estar logueado para subir preguntas.");
+      setShowErrorModal(true);
       setShowUploadModal(false);
       return;
     }
@@ -192,7 +197,8 @@ export default function PreguntasGuardadas() {
 
     } catch (error) {
       console.error("Error subiendo preguntas:", error);
-      alert("Error al subir las preguntas. Intenta nuevamente.");
+      setErrorMessage("Error al subir las preguntas. Intenta nuevamente.");
+      setShowErrorModal(true);
     } finally {
       setUploading(false);
     }
@@ -309,88 +315,72 @@ export default function PreguntasGuardadas() {
 
       {/* Modal de Mínimo de Preguntas */}
       {showMinQuestionsModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-6 text-center">
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertCircle size={32} className="text-orange-500" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Mínimo 10 Preguntas</h3>
-              <p className="text-gray-600 mb-4 leading-relaxed">
-                Necesitas al menos <strong>10 preguntas</strong> guardadas para poder subirlas a Firebase.
-              </p>
-              <p className="text-sm text-gray-500 mb-6">
-                Actualmente tienes: <strong>{preguntas.length}</strong> {preguntas.length === 1 ? 'pregunta' : 'preguntas'}
-              </p>
-              <button
-                onClick={() => setShowMinQuestionsModal(false)}
-                className="w-full bg-orange-500 text-white font-bold py-3 rounded-xl hover:bg-orange-600 transition shadow-lg"
-              >
-                Entendido
-              </button>
-            </div>
-          </div>
-        </div>
+        <StatusModal
+          type="error"
+          title="Mínimo 10 Preguntas"
+          message={`Necesitas al menos 10 preguntas guardadas para poder subirlas a Firebase. Actualmente tienes: ${preguntas.length}.`}
+          onClose={() => setShowMinQuestionsModal(false)}
+        />
       )}
 
       {/* Modal de Confirmación de Subida */}
-      {showUploadModal && (
+      {showUploadModal && !uploading && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="p-6 text-center">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CloudUpload size={32} className={`text-blue-600 ${uploading ? "animate-bounce" : ""}`} />
+                <CloudUpload size={32} className="text-blue-600" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">
-                {uploading ? "Subiendo..." : "¿Subir preguntas?"}
+                ¿Subir preguntas?
               </h3>
               <p className="text-gray-500 mb-6">
-                {uploading 
-                  ? "Por favor espera mientras subimos tus preguntas a Firebase..." 
-                  : `Se subirán ${preguntas.length} preguntas a Firebase. Revisa que todo esté correcto.`}
+                {`Se subirán ${preguntas.length} preguntas a Firebase. Revisa que todo esté correcto.`}
               </p>
-              {!uploading && (
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowUploadModal(false)}
-                    className="flex-1 bg-gray-100 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-200 transition"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={confirmUpload}
-                    className="flex-1 bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition shadow-lg"
-                  >
-                    Subir
-                  </button>
-                </div>
-              )}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowUploadModal(false)}
+                  className="flex-1 bg-gray-100 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-200 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmUpload}
+                  className="flex-1 bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition shadow-lg"
+                >
+                  Subir
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal de Éxito */}
+      {/* Modales de Estado usando StatusModal */}
+      {uploading && (
+        <StatusModal
+          type="loading"
+          title="Subiendo..."
+          message="Por favor espera mientras subimos tus preguntas a Firebase..."
+        />
+      )}
+
       {showSuccessModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-6 text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle size={32} className="text-green-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">¡Subida Exitosa!</h3>
-              <p className="text-gray-500 mb-6">
-                Se han subido correctamente {uploadedCount} preguntas a Firebase.
-              </p>
-              <button
-                onClick={() => setShowSuccessModal(false)}
-                className="w-full bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700 transition shadow-lg"
-              >
-                Entendido
-              </button>
-            </div>
-          </div>
-        </div>
+        <StatusModal
+          type="success"
+          title="¡Subida Exitosa!"
+          message={`Se han subido correctamente ${uploadedCount} preguntas a Firebase.`}
+          onClose={() => setShowSuccessModal(false)}
+        />
+      )}
+
+      {showErrorModal && (
+        <StatusModal
+          type="error"
+          title="Error"
+          message={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
       )}
     </div>
   );
