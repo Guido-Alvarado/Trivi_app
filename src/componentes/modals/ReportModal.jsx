@@ -1,7 +1,45 @@
 import React from "react";
 import { AlertTriangle, X } from "lucide-react";
+import { auth } from "../../firebaseConfig";
 
-export default function ReportModal({ onClose, onConfirm }) {
+export default function ReportModal({ onClose, item, itemType }) {
+  const handleReport = () => {
+    const user = auth.currentUser;
+    
+    if (!user) {
+      alert("Debes iniciar sesión para reportar contenido");
+      onClose();
+      return;
+    }
+
+    // Construir mensaje para WhatsApp
+    const itemName = item?.Nombre || item?.nombre || item?.Pregunta || "Sin nombre";
+    const itemId = item?.id || "Sin ID";
+    const userId = user.uid;
+    const userEmail = user.email;
+    
+    const mensaje = `🚨 *REPORTE DE CONTENIDO*
+
+📋 *Tipo:* ${itemType}
+🆔 *ID del Item:* ${itemId}
+📝 *Nombre/Título:* ${itemName}
+
+👤 *Usuario que reporta:*
+- ID: ${userId}
+- Email: ${userEmail}
+
+⚠️ *Motivo:* Contenido inapropiado o que viola las normas`;
+
+    // Codificar mensaje para URL
+    const mensajeCodificado = encodeURIComponent(mensaje);
+    const numeroWhatsApp = "5493873646049";
+    const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${mensajeCodificado}`;
+    
+    // Abrir WhatsApp
+    window.open(urlWhatsApp, '_blank');
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
@@ -30,6 +68,16 @@ export default function ReportModal({ onClose, onConfirm }) {
             </p>
           </div>
           
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-xs text-blue-800 font-semibold mb-1">
+              ℹ️ CÓMO FUNCIONA:
+            </p>
+            <p className="text-xs text-blue-700">
+              Al confirmar, se abrirá WhatsApp con un mensaje pre-escrito que incluye 
+              toda la información del contenido reportado y tus datos de usuario.
+            </p>
+          </div>
+          
           <p className="text-sm text-gray-600 text-center">
             ¿Estás seguro de que este contenido viola nuestras normas?
           </p>
@@ -42,7 +90,7 @@ export default function ReportModal({ onClose, onConfirm }) {
               Cancelar
             </button>
             <button
-              onClick={onConfirm}
+              onClick={handleReport}
               className="flex-1 bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 transition shadow-lg active:scale-95"
             >
               Sí, Reportar

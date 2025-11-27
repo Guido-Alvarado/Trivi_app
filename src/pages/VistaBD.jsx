@@ -627,7 +627,8 @@ export default function VistaBD() {
       {showReportModal && (
         <ReportModal
           onClose={handleCloseReportModal}
-          onConfirm={handleConfirmReport}
+          item={itemToReport}
+          itemType="Pregunta"
         />
       )}
 

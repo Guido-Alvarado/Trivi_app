@@ -569,7 +569,8 @@ export default function VistaCarreras() {
       {showReportModal && (
         <ReportModal
           onClose={() => setShowReportModal(false)}
-          onConfirm={confirmReport}
+          item={itemToReport}
+          itemType="Carrera"
         />
       )}
 
