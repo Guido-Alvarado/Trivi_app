@@ -2,20 +2,21 @@
   "name": "TriviaApp - UNSa",
   "short_name": "TriviaApp",
   "description": "Aplicación de trivia y preguntas para estudiantes de la Universidad Nacional de Salta",
-  "start_url": "/",
+  "start_url": "/Trivi_app/",
+  "scope": "/Trivi_app/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3B82F6",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/icon-192x192.png",
+      "src": "/Trivi_app/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icon-512x512.png",
+      "src": "/Trivi_app/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -23,7 +24,7 @@
   ],
   "screenshots": [
     {
-      "src": "/icon-512x512.png",
+      "src": "/Trivi_app/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "form_factor": "narrow"
@@ -35,15 +36,15 @@
       "name": "Ver Carreras",
       "short_name": "Carreras",
       "description": "Explorar carreras disponibles",
-      "url": "/carreras",
-      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+      "url": "/Trivi_app/carreras",
+      "icons": [{ "src": "/Trivi_app/icon-192x192.png", "sizes": "192x192" }]
     },
     {
       "name": "Mis Materias",
       "short_name": "Materias",
       "description": "Ver materias guardadas",
-      "url": "/materias/1",
-      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+      "url": "/Trivi_app/materias/1",
+      "icons": [{ "src": "/Trivi_app/icon-192x192.png", "sizes": "192x192" }]
     }
   ]
 }
